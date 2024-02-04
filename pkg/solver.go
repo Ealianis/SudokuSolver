@@ -13,3 +13,35 @@ package pkg
 // Cell values are bound by [1,n^2]
 // For each row & column, all cell values must be unique.
 // For each block, all cells contained therein must have unique values.
+
+type orientation string
+
+const (
+	horizontalOrientation orientation = "horizontal"
+	verticalOrientation   orientation = "vertical"
+)
+
+type Board struct {
+	blocks []*Block
+}
+
+// A chain is a collection on n blocks.
+// It orientation determines its "focus", columns or rows.
+type Chain struct {
+	blocks      []*Block
+	orientation orientation
+}
+
+type Block struct {
+	id   int
+	rows []*Row
+}
+
+type Row struct {
+	cells []*Cell
+}
+
+type Cell struct {
+	value int
+	hint  []int
+}
