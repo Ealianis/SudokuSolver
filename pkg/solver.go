@@ -37,11 +37,26 @@ type Block struct {
 	rows []*Row
 }
 
+type Column struct {
+	id    int
+	cells []*Cell
+}
+
 type Row struct {
+	id    int
 	cells []*Cell
 }
 
 type Cell struct {
 	value int
 	hint  []int
+}
+
+func (r *Row) containsValue(i int) bool {
+	for _, c := range r.cells {
+		if i == c.value {
+			return true
+		}
+	}
+	return false
 }
