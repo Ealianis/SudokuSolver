@@ -1,51 +1,77 @@
 package types
 
-type CellCoordinates struct {
-	column *Column
-	row    *Row
-}
+import (
+	"fmt"
+)
 
 type Block struct {
-	columns  []*Column
-	rows     []*Row
-	valueMap map[int]*CellCoordinates
+	// An array of chains which the block is apart of. The number of chains
+	// is limited to dimension of the puzzle, e.g,. 2d, 3d, ...
+	Chains     []*Chain
+	// The collection of arrays that span the dimensions of the block, e.g., rows, columns, layers.
+	CellArrays []*CellArray
+	// A map for specific values within the block, an array of CellArrays is used as
+	// a cell's ordinal within the array may differ between dimensions.
+	ValueMap   map[int][]*CellArray
 }
 
-func NewBlock(rank int) *Block {
+func NewBlock(dimensions, rank int) *Block {
 	block := &Block{
-		// The column & row array size is based upon the Sudoku puzzle rank.
-		columns:  make([]*Column, rank),
-		rows:     make([]*Row, rank),
-		valueMap: make(map[int]*CellCoordinates),
+		Chains: make([]*Chain, dimension),
+		CellArrays: make([]*CellArray, rank*dimensions),
+		ValueMap:   make(map[int][]*CellArray),
 	}
 
-	for i := 0; i <= rank-1; i++ {
-		block.columns = append(block.columns, &Column{})
-		block.rows = append(block.rows, &Row{})
+	// The cell arrays will have an even number of x & y axis arrays.
+	for i := 0; i <= (rank*dimensions)-1; i++ {
+		axis := YAxis
+		if i > rank-1 {
+			axis = XAxis
+		}
+
+		block.CellArrays = append(block.CellArrays, &CellArray{axis: axis})
 	}
 
 	return block
 }
 
-func (b *Block) HasValue(value int) bool {
-	return b.valueMap[value] != nil
+func (b *Block) HasValue(value int) (bool, []*CellCoordinates) {
+	return (len(b.ValueMap[value]) > 0), b.ValueMap[value]
 }
 
-func (b *Block) SetCell(columnOrdinal, columnCellOrdinal, rowOrdinal, rowCellOrdinal, value int) *Cell {
+func (b *Block) CreateCell(xOrdinal, yOrdinal, value int) (*Cell, error) {
+	// todo - refactor for n-dimensional puzzle
+	if b.ValueMap[value] != nil {
+		c := b.ValueMap[value][0].
+		return b.ValueMap[value] , fmt.Errorf("a cell already exists ")
+	}
+
 	cell := &Cell{
 		value: value,
 	}
 
-	col := b.columns[columnOrdinal-1]
-	col.SetCell(columnCellOrdinal, cell)
-	row := b.rows[rowOrdinal-1]
-	row.SetCell(rowCellOrdinal, cell)
+	xCellArrays := b.getCellArraysByAxis(XAxis)
+	yCellArrays := b.getCellArraysByAxis(YAxis)
 
-	cc := &CellCoordinates{
-		column: col,
-		row:    row,
-	}
-	b.valueMap[value] = cc
+	// todo - this is a bit confusing, rename or refactor?
+	// xCellArray = array or rows
+	// yOrdinal = which row
+	// xordinal = which column
+	xCellArrays[yOrdinal-1].SetCell(xOrdinal, cell)
+	yCellArrays[xOrdinal-1].SetCell(yOrdinal, cell)
+
+	cc := &CellCoordinates{}
+	b.ValueMap[value] = append(b.ValueMap[value], cc)
 
 	return cell
+}
+
+func (b *Block) getCellArraysByAxis(axis Axis) []*CellArray {
+	var result []*CellArray
+	for _, ca := range b.CellArrays {
+		if ca.axis == axis {
+			result = append(result, ca)
+		}
+	}
+	return result
 }
