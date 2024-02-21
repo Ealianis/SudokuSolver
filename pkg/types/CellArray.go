@@ -1,5 +1,8 @@
 package types
 
+// A CellArray is an array of Cells which spans some dimension, e.g. x,y,z.
+// Often referred to as rows, columns, and layers (for 3rd); the usage
+// of the term CellArray provides an abstraction to such constructs
 type CellArray struct {
 	dimension  int
 	cells      []*Cell
@@ -7,7 +10,7 @@ type CellArray struct {
 	valueMap   map[int]*Cell
 }
 
-func NewCellArray(rank, dimension int) *CellArray {
+func NewCellArray(dimension, rank int) *CellArray {
 	return &CellArray{
 		dimension:  dimension,
 		cells:      make([]*Cell, rank),
@@ -16,20 +19,22 @@ func NewCellArray(rank, dimension int) *CellArray {
 	}
 }
 
-func (c *CellArray) HasValue(i int) bool {
-	return c.valueMap[i] != nil
+func (ca *CellArray) HasValue(i int) bool {
+	return ca.valueMap[i] != nil
 }
 
-func (c *CellArray) SetCell(ordinal int, cell *Cell) {
-	c.cells = append(c.cells, cell)
-	c.valueMap[cell.value] = cell
-	c.ordinalMap[ordinal] = cell
+func (ca *CellArray) SetCell(ordinal, value int) *Cell {
+	c := &Cell{value: value}
+	ca.cells = append(ca.cells, c)
+	ca.valueMap[c.value] = c
+	ca.ordinalMap[ordinal] = c
+	return c
 }
 
-func (c *CellArray) GetCellByValue(value int) *Cell {
-	return c.valueMap[value]
+func (ca *CellArray) GetCellByValue(value int) *Cell {
+	return ca.valueMap[value]
 }
 
-func (c *CellArray) GetCellByOrdinal(ordinal int) *Cell {
-	return c.ordinalMap[ordinal]
+func (ca *CellArray) GetCellByOrdinal(ordinal int) *Cell {
+	return ca.ordinalMap[ordinal]
 }
